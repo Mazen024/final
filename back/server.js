@@ -15,29 +15,29 @@ app.post('/signup', async (req, res) => {
     const { username, password, confirmPassword, email, phoneNumber, age, country} = req.body;
   
     try {
-      // Check if the email is a valid Gmail address
-      if (!email.endsWith('@gmail.com')) {
+
+        if (!email.endsWith('@gmail.com')) {
         return res.status(400).json({ error: 'Email must be a valid Gmail address.' });
       }
   
-      // Check if the password and confirmPassword match
+      
       if (password !== confirmPassword) {
         return res.status(400).json({ error: 'Passwords do not match' });
       }
   
-      // Check if the username is already in use
+      
       const usernameExists = await User.findOne({ username });
       if (usernameExists) {
         return res.status(400).json({ error: 'Username is already in use.' });
       }
   
-      // Check if the email is already registered
+      
       const emailExists = await User.findOne({ email });
       if (emailExists) {
         return res.status(400).json({ error: 'Email is already registered' });
       }
   
-      // Create a new user instance
+      
       const newUser = new User({ username, password, confirmPassword, email, phoneNumber, age, country });
   
       
@@ -104,7 +104,6 @@ app.delete('/admin/delete-product/:productId', authMid, async (req, res) => {
             return res.status(400).send('Invalid product ID');
         }
 
-        // Attempt to delete the product
         const deletedProduct = await Product.findByIdAndDelete(productId);
 
         if (!deletedProduct) {
@@ -118,7 +117,33 @@ app.delete('/admin/delete-product/:productId', authMid, async (req, res) => {
     }
 });
 
-
+app.put('/admin/edit-product/:id', authMid, async (req, res) => {
+    const productId = req.params.id;
+    const { title, description, price, brand, images } = req.body;
+  
+    try {
+      
+      let product = await Product.findById(productId);
+  
+      if (!product) {
+        return res.status(404).send("Couldn't find a product with the given id");
+      }
+  
+      product.title = title;
+      product.description = description;
+      product.price = price;
+      product.brand = brand;
+      product.images = images;
+  
+      product = await product.save();
+  
+      return res.send(product);
+    } catch (error) {
+      console.error('Error editing product:', error);
+      return res.status(500).send('Internal Server Error');
+    }
+  });
+  
 
 app.get('/product', async (req, res) => {
     try {
